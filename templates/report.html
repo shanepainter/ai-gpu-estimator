@@ -1,0 +1,40 @@
+<!-- templates/report.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>AI Workload GPU Estimator Report</h1>
+    <h2>GPU Recommendations</h2>
+    <table>
+        <tr><th>GPU</th><th>Details</th></tr>
+        {% for gpu, details in data.gpus.items() %}
+        <tr>
+            <td>{{ gpu }}</td>
+            <td>
+                GPUs Needed: {{ details.minGpus }}<br>
+                Capex: ${{ details.capex }}<br>
+                Annual Opex: ${{ details.annualOpex }}<br>
+                Annual TCO: ${{ details.annualTco }}<br>
+                Breakout: GPU ${{ details.gpuCost }}, Server ${{ details.serverCost }}, Storage ${{ details.storageCost }}<br>
+                Power ${{ details.annualPower }}, Cooling ${{ details.annualCooling }}, Colo ${{ details.annualColo }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Cloud Costs</h2>
+    <table>
+        <tr><th>Cloud</th><th>Annual Cost</th></tr>
+        {% for cloud, cost in data.clouds.items() %}
+        <tr><td>{{ cloud }}</td><td>${{ cost }}</td></tr>
+        {% endfor %}
+    </table>
+    <p>Note: On-prem solutions are typically cheaper over time due to lower ongoing costs compared to cloud, as shown in the TCO calculations.</p>
+</body>
+</html>

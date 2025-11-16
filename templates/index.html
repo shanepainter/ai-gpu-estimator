@@ -1,0 +1,45 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Workload GPU Estimator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Workload GPU Estimator</h1>
+        <div id="step1">
+            <h2>Step 1: Add Workload</h2>
+            <select id="use_case">
+                {% for uc in use_cases %}
+                <option value="{{ uc.lower()|replace(' ', '_') }}">{{ uc }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" id="concurrent_users" placeholder="Concurrent Users" min="1">
+            <label><input type="checkbox" id="agentic"> Agentic (increases RPS)</label>
+            <button onclick="addWorkload()">Add Workload</button>
+            <button onclick="proceedToGPU()">Proceed to GPU Selection</button>
+            <div id="workloads"></div>
+        </div>
+        <div id="step2" style="display:none;">
+            <h2>Step 2: GPU Recommendations</h2>
+            <div id="gpu_recs"></div>
+            <p>Select two GPUs for comparison:</p>
+            <select id="gpu1"></select>
+            <select id="gpu2"></select>
+            <button onclick="compareCosts()">Compare Costs</button>
+        </div>
+        <div id="step3" style="display:none;">
+            <h2>Step 3: Cost Comparison</h2>
+            <div id="cost_compare"></div>
+            <canvas id="tcoChart" width="400" height="200"></canvas>
+            <canvas id="breakevenChart" width="400" height="200"></canvas>
+            <button onclick="exportCSV()">Export CSV</button>
+            <button onclick="exportPDF()">Export PDF</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
