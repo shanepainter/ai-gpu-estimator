@@ -1,3 +1,4 @@
+# Dockerfile
 FROM python:3.12-slim
 
 # Install system dependencies for WeasyPrint
@@ -17,5 +18,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Use Gunicorn for production (binds to Render's $PORT env var)
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "2", "app:app"]
+# Use shell form to expand $PORT
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 app:app
