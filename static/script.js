@@ -105,17 +105,21 @@ function usersToRps(concurrentUsers, useCaseKey, agentic, avgThinkTimeSec = 10) 
 
 function addWorkload() {
     const uc = document.getElementById('use_case').value;
-    const usersInput = document.getElementById('concurrent_users').value;
-    const users = parseInt(usersInput);
+    const usersInput = document.getElementById('concurrent_users').value.trim();
+    const users = parseInt(usersInput, 10);
     const agentic = document.getElementById('agentic').checked;
 
-    if (isNaN(users) || users < 1) {
+    if (isNaN(users) || users < 1 || usersInput === '') {
         alert('Please enter a valid number of concurrent users (at least 1).');
         return;
     }
 
+    if (!tokensData[uc]) {
+        alert('Invalid use case selected.');
+        return;
+    }
+
     const tok = tokensData[uc];
-    if (!tok) return alert('Invalid use case');
     let output = tok.output;
     if (agentic) output *= 4;
     const totalTokens = tok.input + output;
@@ -132,7 +136,10 @@ function addWorkload() {
 }
 
 function proceedToGPU() {
-    if (workloads.length === 0) return alert('Add at least one workload');
+    if (workloads.length === 0) {
+        alert('Please add at least one workload before proceeding.');
+        return;
+    }
 
     let totalRequiredTps = 0;
     let maxVramGb = 0;
@@ -170,7 +177,10 @@ function proceedToGPU() {
 function compareCosts() {
     const gpu1 = document.getElementById('gpu1').value;
     const gpu2 = document.getElementById('gpu2').value;
-    if (gpu1 === gpu2) return alert('Select different GPUs');
+    if (gpu1 === gpu2) {
+        alert('Please select two different GPUs for comparison.');
+        return;
+    }
 
     let totalRequiredTps = 0;
     let maxVramGb = 0;
@@ -240,20 +250,27 @@ function compareCosts() {
             datasets: [
                 {
                     label: gpu1 + ' On-Prem',
-                    data: years.map(y => (reportData.gpus[gpu1].capex / 3 * Math.min(y, 3)) + (reportData.gpus[gpu1].annualOpex * y)),
+                    data: years.map(y => (parseFloat(reportData.gpus[gpu1].capex) / 3 * Math.min(y, 3)) + (parseFloat(reportData.gpus[gpu1].annualOpex) * y)),
                     borderColor: 'blue'
                 },
                 {
                     label: gpu2 + ' On-Prem',
-                    data: years.map(y => (reportData.gpus[gpu2].capex / 3 * Math.min(y, 3)) + (reportData.gpus[gpu2].annualOpex * y)),
+                    data: years.map(y => (parseFloat(reportData.gpus[gpu2].capex) / 3 * Math.min(y, 3)) + (parseFloat(reportData.gpus[gpu2].annualOpex) * y)),
                     borderColor: 'green'
                 },
-                {label: 'AWS', data: years.map(y => reportData.clouds['AWS'] * y), borderColor: 'red'},
-                {label: 'GCP', data: years.map(y => reportData.clouds['GCP'] * y), borderColor: 'orange'},
-                {label: 'Azure', data: years.map(y => reportData.clouds['Azure'] * y), borderColor: 'purple'}
-            ]
+                {label: 'AWS', data: years.map(y => parseFloat(reportData.clouds['AWS']) * y), borderColor: 'red'},
+                {label: 'GCP', data: years.map(y => parseFloat(reportData.clouds['GCP']) * y), borderColor: 'orange'},
+                {label: 'Azure', data: years.map(y => parseFloat(reportData.clouds['Azure']) * y), borderColor: 'purple'}
+                ]
         },
-        options: {title: {display: true, text: 'TCO Over Time ($)'}}
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'TCO Over Time ($)'
+                }
+            }
+        }
     });
 
     // Breakeven Chart (cumulative costs)
@@ -263,11 +280,18 @@ function compareCosts() {
         data: {
             labels: years,
             datasets: [
-                {label: gpu1 + ' On-Prem Cumulative', data: years.map(y => (reportData.gpus[gpu1].capex / 3 * Math.min(y, 3)) + (reportData.gpus[gpu1].annualOpex * y)), borderColor: 'blue'},
+                {label: gpu1 + ' On-Prem Cumulative', data: years.map(y => (parseFloat(reportData.gpus[gpu1].capex) / 3 * Math.min(y, 3)) + (parseFloat(reportData.gpus[gpu1].annualOpex) * y)), borderColor: 'blue'},
                 {label: 'Avg Cloud Cumulative', data: years.map(y => ((parseFloat(reportData.clouds['AWS']) + parseFloat(reportData.clouds['GCP']) + parseFloat(reportData.clouds['Azure'])) / 3 * y), borderColor: 'red'}
             ]
         },
-        options: {title: {display: true, text: 'Breakeven: On-Prem vs Avg Cloud ($)'}}
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Breakeven: On-Prem vs Avg Cloud ($)'
+                }
+            }
+        }
     });
 
     document.getElementById('step2').style.display = 'none';
@@ -279,13 +303,16 @@ function exportCSV() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(reportData)
-    }).then(res => res.blob()).then(blob => {
+    }).then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.blob();
+    }).then(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'report.csv';
         a.click();
-    });
+    }).catch(error => console.error('Error exporting CSV:', error));
 }
 
 function exportPDF() {
@@ -293,11 +320,14 @@ function exportPDF() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(reportData)
-    }).then(res => res.blob()).then(blob => {
+    }).then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.blob();
+    }).then(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'report.pdf';
         a.click();
-    });
+    }).catch(error => console.error('Error exporting PDF:', error));
 }
