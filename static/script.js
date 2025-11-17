@@ -104,6 +104,7 @@ function usersToRps(concurrentUsers, useCaseKey, agentic, avgThinkTimeSec = 10) 
 }
 
 function addWorkload() {
+    console.log('Add Workload button clicked');
     const uc = document.getElementById('use_case').value;
     const usersInput = document.getElementById('concurrent_users').value.trim();
     const users = parseInt(usersInput, 10);
@@ -136,6 +137,7 @@ function addWorkload() {
 }
 
 function proceedToGPU() {
+    console.log('Proceed to GPU button clicked');
     if (workloads.length === 0) {
         alert('Please add at least one workload before proceeding.');
         return;
@@ -175,6 +177,7 @@ function proceedToGPU() {
 }
 
 function compareCosts() {
+    console.log('Compare Costs button clicked');
     const gpu1 = document.getElementById('gpu1').value;
     const gpu2 = document.getElementById('gpu2').value;
     if (gpu1 === gpu2) {
@@ -261,7 +264,7 @@ function compareCosts() {
                 {label: 'AWS', data: years.map(y => parseFloat(reportData.clouds['AWS']) * y), borderColor: 'red'},
                 {label: 'GCP', data: years.map(y => parseFloat(reportData.clouds['GCP']) * y), borderColor: 'orange'},
                 {label: 'Azure', data: years.map(y => parseFloat(reportData.clouds['Azure']) * y), borderColor: 'purple'}
-                ]
+            ]
         },
         options: {
             plugins: {
@@ -299,6 +302,7 @@ function compareCosts() {
 }
 
 function exportCSV() {
+    console.log('Export CSV button clicked');
     fetch('/export_csv', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -316,6 +320,7 @@ function exportCSV() {
 }
 
 function exportPDF() {
+    console.log('Export PDF button clicked');
     fetch('/export_pdf', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
