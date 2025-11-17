@@ -4,4 +4,4 @@ body { font-family: Arial, sans-serif; }
 h1, h2 { text-align: center; }
 select, input { display: block; margin: 10px 0; width: 100%; }
 button { margin: 10px 0; }
-#workloads { margin-top: 20px; }
+#workloads { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }  /* Added border for visibility */

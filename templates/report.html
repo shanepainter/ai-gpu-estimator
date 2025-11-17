@@ -19,6 +19,7 @@
             <td>{{ gpu }}</td>
             <td>
                 GPUs Needed: {{ details.minGpus }}<br>
+                VRAM Needed (GB): {{ details.vramNeeded }} (Model + KV Cache for longest context)<br>
                 Capex: ${{ details.capex }}<br>
                 Annual Opex: ${{ details.annualOpex }}<br>
                 Annual TCO: ${{ details.annualTco }}<br>
@@ -35,6 +36,6 @@
         <tr><td>{{ cloud }}</td><td>${{ cost }}</td></tr>
         {% endfor %}
     </table>
-    <p>Note: On-prem solutions are typically cheaper over time due to lower ongoing costs compared to cloud, as shown in the TCO calculations.</p>
+    <p>Note: On-prem solutions are typically cheaper over time due to lower ongoing costs compared to cloud, as shown in the TCO calculations. For long-context workloads, ensure sufficient VRAM for KV cache.</p>
 </body>
 </html>

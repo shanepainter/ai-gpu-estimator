@@ -69,13 +69,15 @@ const sessionDuration = {
 };
 
 const gpuData = {
-    "B300": {benchmark: 7200, price: 40000, tdp: 1300},
-    "GB200": {benchmark: 9500, price: 65000, tdp: 1200},
-    "MI355X": {benchmark: 7200, price: 30000, tdp: 1400}
+    "B300": {benchmark: 7200, price: 40000, tdp: 1300, vram: 288},
+    "GB200": {benchmark: 9500, price: 65000, tdp: 1200, vram: 192},
+    "MI355X": {benchmark: 7200, price: 30000, tdp: 1400, vram: 288}
 };
 
 const topGpus = ["B300", "GB200", "MI355X"];
 
+const KV_CACHE_PER_TOKEN_BYTES = 156250;  // ~150KB per token for 70B FP8
+const MODEL_VRAM_GB = 100;
 const ELECTRICITY_COST_KWH = 0.085;
 const COLOCATION_PER_RACK_MONTH = 800;
 const GPUS_PER_RACK = 8;
@@ -103,8 +105,14 @@ function usersToRps(concurrentUsers, useCaseKey, agentic, avgThinkTimeSec = 10) 
 
 function addWorkload() {
     const uc = document.getElementById('use_case').value;
-    const users = parseInt(document.getElementById('concurrent_users').value);
+    const usersInput = document.getElementById('concurrent_users').value;
+    const users = parseInt(usersInput);
     const agentic = document.getElementById('agentic').checked;
+
+    if (isNaN(users) || users < 1) {
+        alert('Please enter a valid number of concurrent users (at least 1).');
+        return;
+    }
 
     const tok = tokensData[uc];
     if (!tok) return alert('Invalid use case');
@@ -117,6 +125,10 @@ function addWorkload() {
 
     const div = document.getElementById('workloads');
     div.innerHTML += `<p>${uc.replace(/_/g, ' ')}: ${users} users, Agentic: ${agentic}, RPS: ${rps}, Total Tokens: ${totalTokens}</p>`;
+
+    // Clear input for next addition
+    document.getElementById('concurrent_users').value = '';
+    document.getElementById('agentic').checked = false;
 }
 
 function proceedToGPU() {
@@ -126,17 +138,20 @@ function proceedToGPU() {
     let maxVramGb = 0;
     workloads.forEach(w => {
         totalRequiredTps += w.totalTokens * w.rps;
-        const vram = ((w.input + w.output) * 2 + w.input * 96) / 1e9;
-        if (vram > maxVramGb) maxVramGb = vram;
+        const vramKv = (w.input + w.output) * KV_CACHE_PER_TOKEN_BYTES / 1e9;
+        if (vramKv > maxVramGb) maxVramGb = vramKv;
     });
+    const totalVramNeeded = MODEL_VRAM_GB + maxVramGb * 1.2;  // 20% overhead
 
     const recDiv = document.getElementById('gpu_recs');
     recDiv.innerHTML = '';
     topGpus.forEach(gpu => {
         const bench = gpuData[gpu].benchmark;
         const minGpus = Math.max(1, Math.ceil(totalRequiredTps / (bench * UTILIZATION)));
-        // Assume all GPUs have sufficient VRAM for simplicity
-        recDiv.innerHTML += `<p>${gpu}: ${minGpus} GPUs needed. Rationale: Required TPS ${totalRequiredTps.toFixed(2)} / (${bench} tokens/sec * ${UTILIZATION} util) = ${minGpus} GPUs.</p>`;
+        const gpuVram = gpuData[gpu].vram;
+        const vramSufficient = gpuVram >= totalVramNeeded;
+        const vramNote = vramSufficient ? '' : ' (Insufficient VRAM for long-context; consider more GPUs or batching)';
+        recDiv.innerHTML += `<p>${gpu}: ${minGpus} GPUs needed. Rationale: Required TPS ${totalRequiredTps.toFixed(2)} / (${bench} tokens/sec * ${UTILIZATION} util) = ${minGpus} GPUs. VRAM: ${gpuVram}GB available vs ${totalVramNeeded.toFixed(2)}GB needed${vramNote}.</p>`;
     });
 
     const sel1 = document.getElementById('gpu1');
@@ -158,7 +173,13 @@ function compareCosts() {
     if (gpu1 === gpu2) return alert('Select different GPUs');
 
     let totalRequiredTps = 0;
-    workloads.forEach(w => totalRequiredTps += w.totalTokens * w.rps);
+    let maxVramGb = 0;
+    workloads.forEach(w => {
+        totalRequiredTps += w.totalTokens * w.rps;
+        const vramKv = (w.input + w.output) * KV_CACHE_PER_TOKEN_BYTES / 1e9;
+        if (vramKv > maxVramGb) maxVramGb = vramKv;
+    });
+    const totalVramNeeded = MODEL_VRAM_GB + maxVramGb * 1.2;
 
     const compareDiv = document.getElementById('cost_compare');
     compareDiv.innerHTML = '';
@@ -183,6 +204,7 @@ function compareCosts() {
 
         compareDiv.innerHTML += `<h3>On-Prem ${gpu}</h3>
             <p>GPUs Needed: ${minGpus}</p>
+            <p>VRAM Needed: ${totalVramNeeded.toFixed(2)} GB (Model + KV Cache for longest context)</p>
             <p>Capex: $${capex.toFixed(0)}</p>
             <p>Annual Opex: $${annualOpex.toFixed(0)}</p>
             <p>Annual TCO: $${annualTco.toFixed(0)}</p>
@@ -190,7 +212,7 @@ function compareCosts() {
             <p>Power $${annualPower.toFixed(0)}, Cooling $${annualCooling.toFixed(0)}, Colo $${annualColo.toFixed(0)}</p>`;
 
         reportData.gpus[gpu] = {
-            minGpus, capex: capex.toFixed(0), annualOpex: annualOpex.toFixed(0), annualTco: annualTco.toFixed(0),
+            minGpus, vramNeeded: totalVramNeeded.toFixed(2), capex: capex.toFixed(0), annualOpex: annualOpex.toFixed(0), annualTco: annualTco.toFixed(0),
             gpuCost: gpuCost.toFixed(0), serverCost: serverCost.toFixed(0), storageCost: storageCost.toFixed(0),
             annualPower: annualPower.toFixed(0), annualCooling: annualCooling.toFixed(0), annualColo: annualColo.toFixed(0)
         };

@@ -42,14 +42,15 @@ TOKENS = {
 }
 
 GPU_DATA = {
-    "B300": {"benchmark": 7200, "price": 40000, "tdp": 1300},
-    "GB200": {"benchmark": 9500, "price": 65000, "tdp": 1200},
-    "MI355X": {"benchmark": 7200, "price": 30000, "tdp": 1400}
+    "B300": {"benchmark": 7200, "price": 40000, "tdp": 1300, "vram": 288},
+    "GB200": {"benchmark": 9500, "price": 65000, "tdp": 1200, "vram": 192},
+    "MI355X": {"benchmark": 7200, "price": 30000, "tdp": 1400, "vram": 288}
 }
 
 # Constants for costs, updated from searches
 UTILIZATION = 0.8
-KV_CACHE_PER_TOKEN = 96  # bytes
+KV_CACHE_PER_TOKEN_BYTES = 156250  # bytes/token for ~70B model FP8
+MODEL_VRAM_GB = 100  # Assume 100B model at FP8 quantization
 ELECTRICITY_COST_KWH = 0.085  # industrial average
 COLOCATION_PER_RACK_MONTH = 800
 GPUS_PER_RACK = 8
@@ -74,6 +75,7 @@ def export_csv():
     # Populate from data
     for gpu, details in data.get('gpus', {}).items():
         writer.writerow([gpu, 'GPUs Needed', details['minGpus']])
+        writer.writerow([gpu, 'VRAM Needed (GB)', details['vramNeeded']])
         writer.writerow([gpu, 'Capex', details['capex']])
         writer.writerow([gpu, 'Annual Opex', details['annualOpex']])
         writer.writerow([gpu, 'Annual TCO', details['annualTco']])
