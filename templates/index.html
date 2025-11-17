@@ -14,7 +14,7 @@
             <h2>Step 1: Add Workload</h2>
             <select id="use_case">
                 {% for uc in use_cases %}
-                <option value="{{ uc.lower()|replace(' ', '_') }}">{{ uc }}</option>
+                <option value="{{ uc.lower()|replace(' ', '_')|replace('/', '_')|replace(':', '_')|replace('(', '')|replace(')', '')|replace('+', '')|replace('&', '') }}">{{ uc }}</option>
                 {% endfor %}
             </select>
             <input type="number" id="concurrent_users" placeholder="Concurrent Users" min="1">

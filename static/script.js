@@ -1,71 +1,73 @@
 // static/script.js
+console.log('Script loaded');
+
 const tokensData = {
-    "chatbot_/_customer_support": {input: 120, output: 80},
-    "code_assistant_(copilot-style)": {input: 250, output: 60},
-    "email_drafting_/_summarization": {input: 400, output: 120},
+    "chatbot_customer_support": {input: 120, output: 80},
+    "code_assistant_copilot-style": {input: 250, output: 60},
+    "email_drafting_summarization": {input: 400, output: 120},
     "document_summarization": {input: 2000, output: 150},
     "meeting_transcription_summary": {input: 8000, output: 300},
-    "rag:_enterprise_search_(q&a)": {input: 1500, output: 180},
+    "rag_enterprise_search_qa": {input: 1500, output: 180},
     "legal_contract_review": {input: 6000, output: 400},
     "medical_report_analysis": {input: 3500, output: 350},
     "product_description_generation": {input: 80, output: 200},
     "social_media_post_generation": {input: 50, output: 100},
     "sql_query_generation": {input: 300, output: 80},
-    "data_analysis_/_pandas_code": {input: 600, output: 250},
-    "translation_(short)": {input: 100, output: 100},
-    "translation_(document)": {input: 4000, output: 4200},
-    "creative_writing_(story_prompt)": {input: 500, output: 1200},
-    "agentic_workflow_(task_planning)": {input: 800, output: 500},
-    "math_/_stem_problem_solving": {input: 200, output: 300},
-    "image_captioning_+_vlm_q&a": {input: 50, output: 120},
-    "personal_assistant_(calendar)": {input: 150, output: 100},
-    "long-context_research_(rag+)": {input: 50000, output: 800}
+    "data_analysis_pandas_code": {input: 600, output: 250},
+    "translation_short": {input: 100, output: 100},
+    "translation_document": {input: 4000, output: 4200},
+    "creative_writing_story_prompt": {input: 500, output: 1200},
+    "agentic_workflow_task_planning": {input: 800, output: 500},
+    "math_stem_problem_solving": {input: 200, output: 300},
+    "image_captioning_vlm_qa": {input: 50, output: 120},
+    "personal_assistant_calendar": {input: 150, output: 100},
+    "long-context_research_rag": {input: 50000, output: 800}
 };
 
 const reqPerSession = {
-    "chatbot_/_customer_support": 6,
-    "code_assistant_(copilot-style)": 4,
-    "email_drafting_/_summarization": 3,
+    "chatbot_customer_support": 6,
+    "code_assistant_copilot-style": 4,
+    "email_drafting_summarization": 3,
     "document_summarization": 1,
     "meeting_transcription_summary": 1,
-    "rag:_enterprise_search_(q&a)": 2,
+    "rag_enterprise_search_qa": 2,
     "legal_contract_review": 1,
     "medical_report_analysis": 1,
     "product_description_generation": 2,
     "social_media_post_generation": 3,
     "sql_query_generation": 2,
-    "data_analysis_/_pandas_code": 2,
-    "translation_(short)": 1,
-    "translation_(document)": 1,
-    "creative_writing_(story_prompt)": 1,
-    "agentic_workflow_(task_planning)": 8,
-    "math_/_stem_problem_solving": 2,
-    "image_captioning_+_vlm_q&a": 3,
-    "personal_assistant_(calendar)": 5,
-    "long-context_research_(rag+)": 1
+    "data_analysis_pandas_code": 2,
+    "translation_short": 1,
+    "translation_document": 1,
+    "creative_writing_story_prompt": 1,
+    "agentic_workflow_task_planning": 8,
+    "math_stem_problem_solving": 2,
+    "image_captioning_vlm_qa": 3,
+    "personal_assistant_calendar": 5,
+    "long-context_research_rag": 1
 };
 
 const sessionDuration = {
-    "chatbot_/_customer_support": 120,
-    "code_assistant_(copilot-style)": 180,
-    "email_drafting_/_summarization": 90,
+    "chatbot_customer_support": 120,
+    "code_assistant_copilot-style": 180,
+    "email_drafting_summarization": 90,
     "document_summarization": 60,
     "meeting_transcription_summary": 300,
-    "rag:_enterprise_search_(q&a)": 60,
+    "rag_enterprise_search_qa": 60,
     "legal_contract_review": 240,
     "medical_report_analysis": 180,
     "product_description_generation": 60,
     "social_media_post_generation": 45,
     "sql_query_generation": 60,
-    "data_analysis_/_pandas_code": 120,
-    "translation_(short)": 30,
-    "translation_(document)": 30,
-    "creative_writing_(story_prompt)": 300,
-    "agentic_workflow_(task_planning)": 240,
-    "math_/_stem_problem_solving": 90,
-    "image_captioning_+_vlm_q&a": 60,
-    "personal_assistant_(calendar)": 90,
-    "long-context_research_(rag+)": 600
+    "data_analysis_pandas_code": 120,
+    "translation_short": 30,
+    "translation_document": 30,
+    "creative_writing_story_prompt": 300,
+    "agentic_workflow_task_planning": 240,
+    "math_stem_problem_solving": 90,
+    "image_captioning_vlm_qa": 60,
+    "personal_assistant_calendar": 90,
+    "long-context_research_rag": 600
 };
 
 const gpuData = {
@@ -156,7 +158,7 @@ function proceedToGPU() {
     recDiv.innerHTML = '';
     topGpus.forEach(gpu => {
         const bench = gpuData[gpu].benchmark;
-        const minGpus = Math.max(1, Math.ceil(totalRequiredTps / (bench * UTILIZATION)));
+        const minGpus = Math.max(1, Math.ceil(totalRequiredTps / (bench * UTILIZATION));
         const gpuVram = gpuData[gpu].vram;
         const vramSufficient = gpuVram >= totalVramNeeded;
         const vramNote = vramSufficient ? '' : ' (Insufficient VRAM for long-context; consider more GPUs or batching)';
